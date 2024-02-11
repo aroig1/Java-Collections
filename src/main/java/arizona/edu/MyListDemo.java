@@ -14,6 +14,7 @@ import java.util.List;
 // import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -24,7 +25,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 // Task 3
 public class MyListDemo extends URLLoader{
     protected List<Product> list = new ArrayList<>();
-    protected Set<String> resultSet = new HashSet<>();
+    // protected Set<String> resultSet = new HashSet<>();
+    protected Set<String> all = new HashSet<>();
+    protected Set<String> duplicates = new HashSet<>();
+    protected Set<String> oneOccurence = null;
 
     // Changed for Task 3, 4, 5
     @Override
@@ -70,15 +74,37 @@ public class MyListDemo extends URLLoader{
         }
     }
 
-    // Task 5
+    // // Task 5
+    // protected void createXLS() {
+    //     try {
+    //         XSSFWorkbook workbook = new XSSFWorkbook();
+    //         XSSFSheet sheet = workbook.createSheet("sheet1");
+    //         int rowNum = 0;
+    //         for (Product product : list) {
+    //             XSSFRow row = sheet.createRow(rowNum++);
+    //             createList(product, row);
+    //         }
+    //         FileOutputStream out = new FileOutputStream(new File("NewFile3.xlsx"));
+    //         workbook.write(out);
+    //         out.close();
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    // }
+
+    // Task 8, 9
     protected void createXLS() {
         try {
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("sheet1");
             int rowNum = 0;
-            for (Product product : list) {
+            // oneOccurence = new HashSet<>(all);
+            oneOccurence = new TreeSet<>(all);
+            oneOccurence.removeAll(duplicates);
+            for (String result : oneOccurence) {
                 XSSFRow row = sheet.createRow(rowNum++);
-                createList(product, row);
+                Cell cell = row.createCell(0);
+                cell.setCellValue(result);
             }
             FileOutputStream out = new FileOutputStream(new File("NewFile3.xlsx"));
             workbook.write(out);
@@ -109,9 +135,20 @@ public class MyListDemo extends URLLoader{
         cell.setCellValue(product.getCategory());
     }
 
-    protected void applySearch() {
+    // Task 7
+    // protected void applySearch() {
+    //     for (Product product : list) {
+    //         resultSet.add(product.getName());
+    //     }
+    // }
+    
+    // Task 8
+    private void applySearch() {
         for (Product product : list) {
-            resultSet.add(product.getName());
+            String name = product.getName();
+            if (!all.add(name)) {
+                duplicates.add(name);
+            }
         }
     }
 
@@ -129,15 +166,20 @@ public class MyListDemo extends URLLoader{
     }
 
 
-    // Changed for Task 3, 4, 5, 6
+    // Changed for Task 3, 4, 5, 6, 8
     public static void main(String[] args) {
         MyListDemo demo = new MyListDemo();
         demo.loadData();
 
         demo.applySearch();
 
-        System.out.println(demo.list.size());
+        //System.out.println(demo.list.size());
         demo.createXLS();
-        System.out.println(demo.resultSet.size());
+        // System.out.println(demo.resultSet.size());
+
+        System.out.println("Size all: " + demo.list.size());
+        System.out.println("Size unique: " + demo.all.size());
+        System.out.println("Size duplicates: " + demo.duplicates.size());
+        System.out.println("Size one occurence: " + demo.oneOccurence.size());
     }
 }
